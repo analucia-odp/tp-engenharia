@@ -17,9 +17,8 @@ public class UserRepository {
         return user;
     }
 
-    public User delete(User user) {
+    public void delete(User user) {
         users.remove(user);
-        return user;
     }
 
     public List<User> getAllUsers() {
@@ -30,8 +29,7 @@ public class UserRepository {
         return users.stream().filter(user -> user.getId().equals(id)).findFirst();
     }
 
-    public User update(User user, User newUser) {
+    public void update(User user, User newUser) {
         users.set(users.indexOf(user), newUser);
-        return newUser;
     }
 }
