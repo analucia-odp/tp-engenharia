@@ -31,9 +31,15 @@ public class UserService {
         }
     }
 
-    public Optional<User> getUserById(UUID id)
+    public ResponseEntity<Object> getUserById(UUID id)
     {
-        return userRepository.getUserById(id);
+        var user = userRepository.getUserById(id);
+        if (user.isPresent()){
+            return ResponseEntity.ok(user);
+        }
+        else{
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with ID " + id + " not found.");
+        }
     }
 
     public List<User> getAllUsers(){
