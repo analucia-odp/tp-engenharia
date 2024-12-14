@@ -2,6 +2,8 @@ package com.ufmg.petclinic.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,4 +26,17 @@ public class ClinicService {
         List<Clinic> clinics = clinicRepository.findAll();
         return clinics != null ? clinics : new ArrayList<>();
     }
+
+    public Optional<Clinic> getClinicById(UUID id) {
+        return clinicRepository.findById(id);
+    }
+
+    public boolean deleteClinic(UUID id) {
+        return clinicRepository.deleteById(id);
+    }
+
+    public Optional<Clinic> updateClinic(UUID id, Clinic updatedClinic) {
+        return clinicRepository.update(id, updatedClinic);
+    }
 }
+
