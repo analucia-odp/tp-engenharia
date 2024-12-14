@@ -1,13 +1,10 @@
 package com.ufmg.petclinic.model;
 
-//import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.lang.NonNull;
 
 import java.util.UUID;
 
-//@NoArgsConstructor
 public class User {
     private final UUID id;
     @NonNull
