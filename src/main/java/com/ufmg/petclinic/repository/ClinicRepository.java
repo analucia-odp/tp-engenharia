@@ -3,50 +3,46 @@ package com.ufmg.petclinic.repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 
 import com.ufmg.petclinic.model.Clinic;
 
+
 @Repository
 public class ClinicRepository {
-    
     private List<Clinic> clinics = new ArrayList<>();
 
-
-    public Clinic insertClinic(Clinic clinic) {
-        Optional<Clinic> existingClinic = findByCnpj(clinic.getCnpj());
-        if (existingClinic.isPresent()) {
-            throw new IllegalArgumentException("Clinic with this CNPJ already exists");
-        }
+    public Clinic save(Clinic clinic) {
         clinics.add(clinic);
         return clinic;
     }
 
-
-    public Optional<Clinic> findByCnpj(Long cnpj) {
+    public Optional<Clinic> findById(UUID id) {
         return clinics.stream()
-                .filter(clinic -> clinic.getCnpj().equals(cnpj))
+                .filter(clinic -> clinic.getId().equals(id))
                 .findFirst();
     }
 
-   
     public List<Clinic> findAll() {
         return clinics;
     }
 
-
-    public Optional<Clinic> update(Long cnpj, Clinic clinicDetails) {
-        Optional<Clinic> clinicOpt = findByCnpj(cnpj);
-        clinicOpt.ifPresent(clinic -> {
-            clinic.setName(clinicDetails.getName());
-            clinic.setAddress(clinicDetails.getAddress());
-        });
-        return clinicOpt;
+    public boolean deleteById(UUID id) {
+        return clinics.removeIf(clinic -> clinic.getId().equals(id));
     }
 
-
-    public boolean delete(Long cnpj) {
-        return clinics.removeIf(clinic -> clinic.getCnpj().equals(cnpj));
+    public Optional<Clinic> update(UUID id, Clinic updatedClinic) {
+        for (int i = 0; i < clinics.size(); i++) {
+            if (clinics.get(i).getId().equals(id)) {
+                Clinic existingClinic = clinics.get(i);
+                existingClinic.setName(updatedClinic.getName());
+                existingClinic.setAddress(updatedClinic.getAddress());
+                existingClinic.setCnpj(updatedClinic.getCnpj());
+                return Optional.of(existingClinic);
+            }
+        }
+        return Optional.empty();
     }
 }
