@@ -1,10 +1,10 @@
 package com.ufmg.petclinic.model;
 
 public class Clinic {
-
+ 
     private Long cnpj;
-    private String nome;
-    private String endereco;
+    private String name;
+    private String address;
 
    
     public Long getCnpj() {
@@ -15,20 +15,20 @@ public class Clinic {
         this.cnpj = cnpj;
     }
 
-    public String getNome() {
-        return nome;
+    public String getName() {
+        return name;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getEndereco() {
-        return endereco;
+    public String getAddress() {
+        return address;
     }
 
-    public void setEndereco(String endereco) {
-        this.endereco = endereco;
+    public void setAddress(String address) {
+        this.address = address;
     }
 }
 
