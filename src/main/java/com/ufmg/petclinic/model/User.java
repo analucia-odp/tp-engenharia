@@ -6,7 +6,7 @@ import org.springframework.lang.NonNull;
 import java.util.UUID;
 
 public class User {
-    private final UUID id;
+    private final UUID id = UUID.randomUUID();
     @NonNull
     private final String name;
     @NonNull
@@ -18,14 +18,12 @@ public class User {
     private final String phone;
     private final String address;
 
-    public User(@JsonProperty("id") UUID id,
-                @JsonProperty("name") String name,
+    public User(@JsonProperty("name") String name,
                 @JsonProperty("email") String email,
                 @JsonProperty("cpf") String cpf,
                 @JsonProperty("phone") String phone,
                 @JsonProperty("address") String address,
                 @JsonProperty("animal") Animal animal) {
-        this.id = id;
         this.name = name;
         this.email = email;
         this.cpf = cpf;
