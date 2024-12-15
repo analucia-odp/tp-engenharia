@@ -1,5 +1,7 @@
 package com.ufmg.petclinic.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.UUID;
 
 public class Clinic {
@@ -9,7 +11,9 @@ public class Clinic {
     private String name;
     private String address;
 
-    public Clinic(long cnpj, String name, String address) {
+    public Clinic(@JsonProperty("cnpj") long cnpj,
+                  @JsonProperty("name") String name,
+                  @JsonProperty("address") String address) {
         this.id = UUID.randomUUID();
         this.cnpj = cnpj;
         this.name = name;

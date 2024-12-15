@@ -12,7 +12,7 @@ import com.ufmg.petclinic.model.Clinic;
 
 @Repository
 public class ClinicRepository {
-    private List<Clinic> clinics = new ArrayList<>();
+    private final List<Clinic> clinics = new ArrayList<>();
 
     public Clinic save(Clinic clinic) {
         clinics.add(clinic);
