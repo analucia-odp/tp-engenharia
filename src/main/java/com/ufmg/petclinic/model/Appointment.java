@@ -10,8 +10,8 @@ public class Appointment {
     private UUID clinicId;
     private LocalDateTime appointmentDateTime;
 
-    public Appointment(UUID id, UUID userId, UUID clinicId, LocalDateTime appointmentDateTime) {
-        this.id = id;
+    public Appointment(UUID userId, UUID clinicId, LocalDateTime appointmentDateTime) {
+        this.id = UUID.randomUUID();
         this.userId = userId;
         this.clinicId = clinicId;
         this.appointmentDateTime = appointmentDateTime;
