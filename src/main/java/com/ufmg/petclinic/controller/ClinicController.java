@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.ufmg.petclinic.model.Clinic;
@@ -23,8 +24,8 @@ public class ClinicController {
     private ClinicService clinicService;
 
     @PostMapping(path ="create")
-    public ResponseEntity<Clinic> createClinic(@RequestParam long cnpj, @RequestParam String name, @RequestParam String address) {
-        Clinic clinic = clinicService.createClinic(cnpj, name, address);
+    public ResponseEntity<Clinic> createClinic(@Validated @RequestBody Clinic clinic) {
+        clinicService.createClinic(clinic);
         return new ResponseEntity<>(clinic, HttpStatus.CREATED);
     }
 

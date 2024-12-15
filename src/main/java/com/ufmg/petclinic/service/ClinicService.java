@@ -17,8 +17,7 @@ public class ClinicService {
     @Autowired
     private ClinicRepository clinicRepository;
 
-    public Clinic createClinic(long cnpj, String name, String address) {
-        Clinic clinic = new Clinic(cnpj, name, address);
+    public Clinic createClinic(Clinic clinic) {
         return clinicRepository.save(clinic);
     }
 
