@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -71,5 +72,17 @@ class AppointmentServiceTest {
         service.deleteAppointment(id);
 
         verify(repository, times(1)).deleteById(id);
+    }
+
+    @Test
+    void shouldGetAllAppointments(){
+        Appointment appointment1 = new Appointment(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.now());
+        Appointment appointment2 = new Appointment(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.now());
+        when(repository.findAll()).thenReturn(List.of(appointment1, appointment2));
+
+        var appointments = service.getAllAppointments();
+
+        assertEquals(2, appointments.size());
+        verify(repository, times(1)).findAll();
     }
 }
