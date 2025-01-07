@@ -66,9 +66,13 @@ public class AppointmentControllerTest {
 
         when(appointmentService.getAppointmentById(appointment.getId())).thenReturn(Optional.of(appointment));
 
+        // Act & Assert
         mockMvc.perform(get(URL + "/" + appointment.getId())
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk()) // Verifica se o status HTTP é 200
+                .andExpect(jsonPath("$.id").value(appointment.getId().toString()))
+                .andExpect(jsonPath("$.userId").value(appointment.getUserId().toString()))
+                .andExpect(jsonPath("$.clinicId").value(appointment.getClinicId().toString()));
     }
 
     @Test
@@ -95,7 +99,13 @@ public class AppointmentControllerTest {
         mockMvc.perform(get(URL)
         .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(status().isOk())
-        .andExpect(jsonPath("$.size()").value(2));
+        .andExpect(jsonPath("$.size()").value(2))
+                .andExpect(jsonPath("$[0].id").value(appointment1.getId().toString()))
+                .andExpect(jsonPath("$[0].userId").value(appointment1.getUserId().toString()))
+                .andExpect(jsonPath("$[0].clinicId").value(appointment1.getClinicId().toString()))
+                .andExpect(jsonPath("$[1].id").value(appointment2.getId().toString()))
+                .andExpect(jsonPath("$[1].userId").value(appointment2.getUserId().toString()))
+                .andExpect(jsonPath("$[1].clinicId").value(appointment2.getClinicId().toString()));
     }
 
     @Test
