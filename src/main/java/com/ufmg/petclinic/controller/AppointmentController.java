@@ -33,9 +33,16 @@ public class AppointmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Appointment> createAppointment(@RequestBody Appointment appointment) {
+    public ResponseEntity<?> createAppointment(@RequestBody Appointment appointment) {
+        boolean isAvailable = service.isTimeAvailable(appointment.getClinicId(), appointment.getAppointmentDateTime());
+    
+        if (!isAvailable) {
+            return ResponseEntity.status(409).body("Horário indisponível para agendamento.");
+        }
+    
         Appointment createdAppointment = service.createAppointment(appointment);
         return ResponseEntity.ok(createdAppointment);
+        
     }
 
      @GetMapping("/{id}")

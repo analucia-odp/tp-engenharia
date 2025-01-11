@@ -23,7 +23,17 @@ public class AppointmentService {
     }
 
     public Appointment createAppointment(Appointment appointment) {
+
         return repository.save(appointment);
+    }
+
+    public boolean isTimeAvailable(UUID clinicId, LocalDateTime appointmentDateTime) {
+        LocalDateTime startOfDay = appointmentDateTime.toLocalDate().atTime(8, 00);
+        LocalDateTime endOfDay = appointmentDateTime.toLocalDate().atTime(18, 00);
+
+        List<LocalDateTime> unavailableTimes = repository.findUnavailableTimes(clinicId, startOfDay, endOfDay);
+    
+        return !unavailableTimes.contains(appointmentDateTime);
     }
 
     public Optional<Appointment> getAppointmentById(UUID id) {
