@@ -1,11 +1,13 @@
 package com.ufmg.petclinic.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.Optional;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ufmg.petclinic.model.Appointment;
@@ -61,5 +64,14 @@ public class AppointmentController {
         Optional<Appointment> updated = service.updateAppointment(id, updatedAppointment);
         return updated.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/available-times")
+    public ResponseEntity<List<LocalDateTime>> getAvailableTimes(
+            @RequestParam UUID clinicId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<LocalDateTime> availableTimes = service.getAvailableTimes(clinicId, startDate, endDate);
+        return ResponseEntity.ok(availableTimes);
     }
 }
