@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 @WebMvcTest(AppointmentController.class)
 public class AppointmentControllerTest {
@@ -49,7 +50,9 @@ public class AppointmentControllerTest {
     @Test
     @DisplayName("Should create Appointment")
     public void createAppointment() throws Exception {
-        var appointment = new Appointment(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.now());
+        var appointment = new Appointment(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.of(2025, 1, 15, 15, 00));
+
+        when(appointmentService.isTimeAvailable(any(UUID.class), eq(appointment.getAppointmentDateTime()))).thenReturn(true);
 
         when(appointmentService.createAppointment(appointment)).thenReturn(appointment);
 
@@ -58,6 +61,33 @@ public class AppointmentControllerTest {
                 .content(objectMapper.writeValueAsString(appointment))
         ).andExpect(status().isOk());
     }
+
+    @Test
+    @DisplayName("Should not allow scheduling an appointment at the same time")
+    public void shouldNotAllowDuplicateAppointmentAtSameTime() throws Exception {
+       
+        var appointment1 = new Appointment(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.of(2025, 1, 15, 15, 00));
+
+        when(appointmentService.isTimeAvailable(any(UUID.class), eq(appointment1.getAppointmentDateTime()))).thenReturn(true);
+        when(appointmentService.createAppointment(appointment1)).thenReturn(appointment1);
+
+        mockMvc.perform(post(URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(appointment1)))
+                .andExpect(status().isOk());  
+
+       
+        var appointment2 = new Appointment(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.of(2025, 1, 15, 15, 00));
+
+        when(appointmentService.isTimeAvailable(any(UUID.class), eq(appointment2.getAppointmentDateTime()))).thenReturn(false);
+
+        mockMvc.perform(post(URL)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(appointment2)))
+        .andExpect(status().isConflict())  
+        .andExpect(content().string("Horário indisponível para agendamento."));   
+    }
+
 
     @Test
     @DisplayName("should get Appointment by Id")
