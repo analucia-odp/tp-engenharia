@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ufmg.petclinic.model.Appointment;
 import com.ufmg.petclinic.service.AppointmentService;
+import com.ufmg.petclinic.repository.AppointmentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -28,12 +30,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
+
 @WebMvcTest(AppointmentController.class)
 public class AppointmentControllerTest {
     private static final String URL = "/api/v1/appointment";
 
     @MockBean
     private AppointmentService appointmentService;
+
+
+    @MockBean
+    private AppointmentRepository appointmentRepository;
 
     @Autowired
     protected MockMvc mockMvc;
@@ -179,4 +186,39 @@ public class AppointmentControllerTest {
                         .content(objectMapper.writeValueAsString(updatedAppointment)))
                 .andExpect(status().isNotFound());
     }
+ 
+    @Test
+    @DisplayName("Should return available times for a clinic")
+    public void TestShouldReturnAvailableTimesForClinic() throws Exception {
+        UUID clinicId = UUID.randomUUID();
+
+        var appointment1 = new Appointment(UUID.randomUUID(), clinicId, LocalDateTime.of(2025, 1, 15, 9, 0));
+        var appointment2 = new Appointment(UUID.randomUUID(), clinicId, LocalDateTime.of(2025, 1, 15, 11, 0));
+    
+        appointmentRepository.save(appointment1);
+        appointmentRepository.save(appointment2);
+    
+    
+        List<LocalDateTime> expected = List.of(
+            LocalDateTime.of(2025, 1, 15, 8, 0),
+            LocalDateTime.of(2025, 1, 15, 10, 0),
+            LocalDateTime.of(2025, 1, 15, 12, 0)
+        );
+        LocalDateTime startDate = LocalDateTime.of(2025, 1, 15, 8, 0);
+        LocalDateTime endDate = LocalDateTime.of(2025, 1, 15, 12, 0);
+        
+        when(appointmentService.getAvailableTimes(clinicId, startDate, endDate))
+            .thenReturn(expected);
+    
+        mockMvc.perform(get(URL + "/available-times")
+            .param("clinicId", clinicId.toString())
+            .param("startDate", startDate.toString())
+            .param("endDate", endDate.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.size()").value(3))
+            .andExpect(jsonPath("$[0]").value("2025-01-15T08:00:00"))  
+            .andExpect(jsonPath("$[1]").value("2025-01-15T10:00:00"))  
+            .andExpect(jsonPath("$[2]").value("2025-01-15T12:00:00"));
+    }
+
 }
