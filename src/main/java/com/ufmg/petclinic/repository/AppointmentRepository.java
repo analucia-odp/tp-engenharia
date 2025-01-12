@@ -4,10 +4,12 @@ import com.ufmg.petclinic.model.Appointment;
 
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Repository
 public class AppointmentRepository {
@@ -40,6 +42,15 @@ public class AppointmentRepository {
             existingAppointment.setAppointmentDateTime(updatedAppointment.getAppointmentDateTime());
             return existingAppointment;
         });
+    }
+
+     public List<LocalDateTime> findUnavailableTimes(UUID clinicId, LocalDateTime startDate, LocalDateTime endDate) {
+        return appointments.stream()
+                .filter(a -> a.getClinicId().equals(clinicId))
+                .filter(a -> !a.getAppointmentDateTime().isBefore(startDate) &&
+                             !a.getAppointmentDateTime().isAfter(endDate))
+                .map(Appointment::getAppointmentDateTime)
+                .collect(Collectors.toList());
     }
 }
 

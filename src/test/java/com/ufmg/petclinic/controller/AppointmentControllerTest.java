@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ufmg.petclinic.model.Appointment;
 import com.ufmg.petclinic.service.AppointmentService;
+import com.ufmg.petclinic.repository.AppointmentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,12 +21,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+
 
 @WebMvcTest(AppointmentController.class)
 public class AppointmentControllerTest {
@@ -33,6 +37,10 @@ public class AppointmentControllerTest {
 
     @MockBean
     private AppointmentService appointmentService;
+
+
+    @MockBean
+    private AppointmentRepository appointmentRepository;
 
     @Autowired
     protected MockMvc mockMvc;
@@ -49,7 +57,9 @@ public class AppointmentControllerTest {
     @Test
     @DisplayName("Should create Appointment")
     public void createAppointment() throws Exception {
-        var appointment = new Appointment(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.now());
+        var appointment = new Appointment(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.of(2025, 1, 15, 15, 00));
+
+        when(appointmentService.isTimeAvailable(any(UUID.class), eq(appointment.getAppointmentDateTime()))).thenReturn(true);
 
         when(appointmentService.createAppointment(appointment)).thenReturn(appointment);
 
@@ -58,6 +68,33 @@ public class AppointmentControllerTest {
                 .content(objectMapper.writeValueAsString(appointment))
         ).andExpect(status().isOk());
     }
+
+    @Test
+    @DisplayName("Should not allow scheduling an appointment at the same time")
+    public void shouldNotAllowDuplicateAppointmentAtSameTime() throws Exception {
+       
+        var appointment1 = new Appointment(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.of(2025, 1, 15, 15, 00));
+
+        when(appointmentService.isTimeAvailable(any(UUID.class), eq(appointment1.getAppointmentDateTime()))).thenReturn(true);
+        when(appointmentService.createAppointment(appointment1)).thenReturn(appointment1);
+
+        mockMvc.perform(post(URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(appointment1)))
+                .andExpect(status().isOk());  
+
+       
+        var appointment2 = new Appointment(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.of(2025, 1, 15, 15, 00));
+
+        when(appointmentService.isTimeAvailable(any(UUID.class), eq(appointment2.getAppointmentDateTime()))).thenReturn(false);
+
+        mockMvc.perform(post(URL)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(appointment2)))
+        .andExpect(status().isConflict())  
+        .andExpect(content().string("Horário indisponível para agendamento."));   
+    }
+
 
     @Test
     @DisplayName("should get Appointment by Id")
@@ -149,4 +186,39 @@ public class AppointmentControllerTest {
                         .content(objectMapper.writeValueAsString(updatedAppointment)))
                 .andExpect(status().isNotFound());
     }
+ 
+    @Test
+    @DisplayName("Should return available times for a clinic")
+    public void TestShouldReturnAvailableTimesForClinic() throws Exception {
+        UUID clinicId = UUID.randomUUID();
+
+        var appointment1 = new Appointment(UUID.randomUUID(), clinicId, LocalDateTime.of(2025, 1, 15, 9, 0));
+        var appointment2 = new Appointment(UUID.randomUUID(), clinicId, LocalDateTime.of(2025, 1, 15, 11, 0));
+    
+        appointmentRepository.save(appointment1);
+        appointmentRepository.save(appointment2);
+    
+    
+        List<LocalDateTime> expected = List.of(
+            LocalDateTime.of(2025, 1, 15, 8, 0),
+            LocalDateTime.of(2025, 1, 15, 10, 0),
+            LocalDateTime.of(2025, 1, 15, 12, 0)
+        );
+        LocalDateTime startDate = LocalDateTime.of(2025, 1, 15, 8, 0);
+        LocalDateTime endDate = LocalDateTime.of(2025, 1, 15, 12, 0);
+        
+        when(appointmentService.getAvailableTimes(clinicId, startDate, endDate))
+            .thenReturn(expected);
+    
+        mockMvc.perform(get(URL + "/available-times")
+            .param("clinicId", clinicId.toString())
+            .param("startDate", startDate.toString())
+            .param("endDate", endDate.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.size()").value(3))
+            .andExpect(jsonPath("$[0]").value("2025-01-15T08:00:00"))  
+            .andExpect(jsonPath("$[1]").value("2025-01-15T10:00:00"))  
+            .andExpect(jsonPath("$[2]").value("2025-01-15T12:00:00"));
+    }
+
 }
